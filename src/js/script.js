@@ -87,7 +87,7 @@
       //! JS nie ma wbudowanej metody, która służy do tego celu
 
       //? Dlaczego nie "const"? -> stworzony element DOM zapisujemy od razu jako właściwość naszej instancji.
-      //? To dobra praktyka. Dzięki temu będziemy mieli do niego dostęp również w innych metodach instancji. Nie tylko w renderInMenu.
+      //? To dobra praktyka. Dzięki temu będziemy mieli do niego dostęp również w innych metodach instancji. Nie tylko w renderInMenu (np. też w initAccordion).
 
       thisProduct.element = utils.createDOMFromHTML(generatedHTML);
 
@@ -127,8 +127,10 @@
         event.preventDefault();
 
         /* [DONE] find active product (product that has active class) */
+        //! Szukamy elementu o klasie 'product' i klasie 'active', czyli po prostu aktywnego produktu.
+        //? Zapis w skrócie: menuProductsActive: '#product-list > .product.active' | co oznacza ">"?
 
-        const activeProduct = document.querySelector(classNames.menuProduct.wrapperActive);
+        const activeProduct = document.querySelector(select.all.menuProductsActive);
 
         /* [DONE] if there is active product and it's not thisProduct.element, remove class active from it */
         //! aby sprawdzić, czy dany element DOM udało się znaleźć, wystarczy sprawdzić, czy nie jest nullem if(activeProduct)
