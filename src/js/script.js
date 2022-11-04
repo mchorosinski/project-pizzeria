@@ -14,6 +14,7 @@
       cart: '#cart',
     },
     all: {
+      //! Symbol '>' oznacza, że chodzi koniecznie o dziecko. Czyli szuakamy elementu o klasie 'product' i 'active', który jest dzieckiem '#product-list'.
       menuProducts: '#product-list > .product',
       menuProductsActive: '#product-list > .product.active',
       formInputs: 'input, select',
@@ -62,12 +63,15 @@
       thisProduct.id = id;
       thisProduct.data = data;
 
-      thisProduct.renderInMenu(); //? To wywołanie uruchamia się jako czwarte?
-      thisProduct.initAccordion(); //! Wywołanie piąte. Chcemy, żeby produkty od razu, od samego początku mogły być zwijane/rozwijane (dlatego wywołanie znajduje się już w konstrukotrze).
+      thisProduct.renderInMenu();
+      thisProduct.getElements();
+      thisProduct.initAccordion(); //! Chcemy, żeby produkty od razu, od samego początku mogły być zwijane/rozwijane (dlatego wywołanie znajduje się już w konstrukotrze).
+      thisProduct.initOrderForm();
+      thisProduct.processOrder();
       console.log('new Product:', thisProduct);
     }
 
-    renderInMenu() { //! W deklaracji tej metody znajdują się dane do powyższego czwartego wywołania.
+    renderInMenu() {
       //! Metoda ta tworzy element DOM wygenerowany na podstawie szablonu HTML reprezentujący właśnie dany produkt i "dokleja" go do strony.
       const thisProduct = this;
 
@@ -106,6 +110,26 @@
 
     }
 
+    getElements(){
+      const thisProduct = this;
+
+      thisProduct.accordionTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
+      //c('thisProduct.accordionTrigger', thisProduct.accordionTrigger);
+
+      thisProduct.form = thisProduct.element.querySelector(select.menuProduct.form);
+      //c('thisProduct.form', thisProduct.form);
+
+      thisProduct.formInputs = thisProduct.form.querySelectorAll(select.all.formInputs);
+      //c('thisProduct.formInputs', thisProduct.formInputs);
+
+      thisProduct.cartButton = thisProduct.element.querySelector(select.menuProduct.cartButton);
+      //c('thisProduct.cartButton', thisProduct.cartButton);
+
+      thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
+      //c('thisProduct.priceElem', thisProduct.priceElem);
+
+    }
+
     initAccordion() { //! To jest deklaracja metody.
       const thisProduct = this;
 
@@ -115,6 +139,7 @@
       //? DOM - Document Object Model
 
       const clickableTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
+      //! metoda getElements uruchamia się już z odpowiednią referencją przed initAccordion -> thisProduct.accordionTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
 
       /* [DONE] START: add event listener to clickable trigger on event click */
 
@@ -162,7 +187,93 @@
         c(thisProduct.element);
 
       });
+    }
 
+    initOrderForm() {
+      const thisProduct = this;
+      c('initOrderForm:', thisProduct.initOrderForm);
+
+      thisProduct.form.addEventListener('submit', function(event){
+        event.preventDefault();
+        thisProduct.processOrder();
+      });
+
+      for(let input of thisProduct.formInputs){
+        input.addEventListener('change', function(){
+          thisProduct.processOrder();
+        });
+      }
+
+      thisProduct.cartButton.addEventListener('click', function(event){
+        event.preventDefault();
+        thisProduct.processOrder();
+      });
+    }
+
+    processOrder() {
+      const thisProduct = this;
+
+      // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
+
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      c('formData', formData);
+
+      // set price to default price
+      //! Tworzymy zmienną, w której będziemy trzymać naszą cenę. Startowo otrzymuje ona domyślną cenę produktu.
+
+      let price = thisProduct.data.price;
+
+      // for every category (param)...
+
+      for(let paramId in thisProduct.data.params) {
+        //! pętla for..in w zmiennej iteracyjnej zwraca zawsze tylko nazwę właściwości. Czyli np. paramId dla toppings
+        //! będzie tylko samą nazwą właściwości – toppings
+
+        // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
+        //! Ta dodatkowa linijka dba o to, aby dostać się do całego obiektu dostępnego pod tą właściwością.
+
+        const param = thisProduct.data.params[paramId];
+        //c(paramId, param);
+
+        // for every option in this category
+
+        for(let optionId in param.options) {
+
+          // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+
+          const option = param.options[optionId];
+          c(optionId, option);
+
+          // check if in formData exists a category name (param), and then (if yes) does it include a proper (checked/selected) option
+          //! 'params' to sauce, toppings, crust; 'options' to tomato, olives, standard
+
+          if(formData[paramId] && formData[paramId].includes(optionId)) {
+
+            // check if the option is not default
+
+            if(!option.default) {
+
+              // add option price to price variable
+              //? Dlaczego nie `let price`?
+              price  = price + option.price;
+            }
+
+          } else {
+
+            // check if the option is default
+
+            if(option.default) {
+
+              // reduce price variable
+              //? Dlaczego nie `let price'?
+              price =  price - option.price;
+            }
+          }
+        }
+      }
+
+      // update calculated price in the HTML
+      thisProduct.priceElem.innerHTML = price;
     }
   }
 
