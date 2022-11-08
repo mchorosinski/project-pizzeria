@@ -128,6 +128,10 @@
       thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
       //c('thisProduct.priceElem', thisProduct.priceElem);
 
+      //! Poniżej referencja do pojedynczego elementu o selektorze zapisanym w select.menuProduct.imageWrapper, czyli: '.product__images'
+      thisProduct.imageWrapper = thisProduct.element.querySelector(select.menuProduct.imageWrapper);
+      c('thisProduct.imageWrapper:', thisProduct.imageWrapper);
+
     }
 
     initAccordion() { //! To jest deklaracja metody.
@@ -175,14 +179,14 @@
         //! thisProduct.element to "bieżący produkt"
 
         if (activeProduct !== null && activeProduct != thisProduct.element) {
-          activeProduct.classList.remove('active');
+          activeProduct.classList.remove(classNames.menuProduct.wrapperActive);
         }
 
         /* [DONE] toggle active class on thisProduct.element */
 
         //! Ważne: toggle - dodanie klasy jeśli jej nie było, i vice versa
 
-        thisProduct.element.classList.toggle('active');
+        thisProduct.element.classList.toggle(classNames.menuProduct.wrapperActive);
 
         c(thisProduct.element);
 
@@ -216,7 +220,7 @@
       // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
 
       const formData = utils.serializeFormToObject(thisProduct.form);
-      c('formData', formData);
+      //c('formData', formData);
 
       // set price to default price
       //! Tworzymy zmienną, w której będziemy trzymać naszą cenę. Startowo otrzymuje ona domyślną cenę produktu.
@@ -226,8 +230,8 @@
       // for every category (param)...
 
       for(let paramId in thisProduct.data.params) {
-        //! pętla for..in w zmiennej iteracyjnej zwraca zawsze tylko nazwę właściwości. Czyli np. paramId dla toppings
-        //! będzie tylko samą nazwą właściwości – toppings
+        //! pętla for..in w zmiennej iteracyjnej zwraca zawsze tylko nazwę właściwości. Czyli np. paramId dla np. toppings i sauce
+        //! będzie tylko samą nazwą właściwości – toppings i sauce
 
         // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
         //! Ta dodatkowa linijka dba o to, aby dostać się do całego obiektu dostępnego pod tą właściwością.
@@ -236,25 +240,34 @@
         //c(paramId, param);
 
         // for every option in this category
+        //! `optionId` jest w tym przypadku zmienną iteracyjną i zwraca np. cucumber, tomatoes, olives, feta, gluten, cheese
 
         for(let optionId in param.options) {
+          //c('optionId:', optionId);
 
           // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+          //! stała `option` zwraca już konkretny obiekt w optionId, np. { label: 'Tomatoes', price: 1, default: true }
 
           const option = param.options[optionId];
-          c(optionId, option);
+          //c('option:', option);
+
+          // find an image in type of category-option -> .paramId-optionId
+
+          const optionImage = thisProduct.imageWrapper.querySelector('.' + paramId + '-' + optionId);
+          c('optionImage:', optionImage);
 
           // check if in formData exists a category name (param), and then (if yes) does it include a proper (checked/selected) option
           //! 'params' to sauce, toppings, crust; 'options' to tomato, olives, standard
 
-          if(formData[paramId] && formData[paramId].includes(optionId)) {
+          const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
+          if(optionSelected) {
 
             // check if the option is not default
 
             if(!option.default) {
 
               // add option price to price variable
-              //? Dlaczego nie `let price`?
+              //! Cenę opcji dodajemy do już istniejącej zmiennej `price`
               price  = price + option.price;
             }
 
@@ -265,8 +278,19 @@
             if(option.default) {
 
               // reduce price variable
-              //? Dlaczego nie `let price'?
+
               price =  price - option.price;
+            }
+          }
+
+          if(optionImage) {
+            if(optionSelected) {
+
+              optionImage.classList.add(classNames.menuProduct.imageVisible);
+
+            } else {
+
+              optionImage.classList.remove(classNames.menuProduct.imageVisible);
             }
           }
         }
