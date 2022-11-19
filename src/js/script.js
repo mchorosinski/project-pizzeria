@@ -8,6 +8,7 @@
   const select = {
     templateOf: {
       menuProduct: '#template-menu-product',
+      cartProduct: '#template-cart-product',
     },
     containerOf: {
       menu: '#product-list',
@@ -29,10 +30,28 @@
     },
     widgets: {
       amount: {
-        input: 'input[name="amount"]',
+        input: 'input.amount',
         linkDecrease: 'a[href="#less"]',
         linkIncrease: 'a[href="#more"]',
       },
+    },
+    cart: {
+      productList: '.cart__order-summary',
+      toggleTrigger: '.cart__summary',
+      totalNumber: `.cart__total-number`,
+      totalPrice: '.cart__total-price strong, .cart__order-total .cart__order-price-sum strong',
+      subtotalPrice: '.cart__order-subtotal .cart__order-price-sum strong',
+      deliveryFee: '.cart__order-delivery .cart__order-price-sum strong',
+      form: '.cart__order',
+      formSubmit: '.cart__order [type="submit"]',
+      phone: '[name="phone"]',
+      address: '[name="address"]',
+    },
+    cartProduct: {
+      amountWidget: '.widget-amount',
+      price: '.cart__product-price',
+      edit: '[href="#edit"]',
+      remove: '[href="#remove"]',
     },
   };
 
@@ -41,6 +60,9 @@
       wrapperActive: 'active',
       imageVisible: 'active',
     },
+    cart: {
+      wrapperActive: 'active',
+    },
   };
 
   const settings = {
@@ -48,11 +70,15 @@
       defaultValue: 1,
       defaultMin: 1,
       defaultMax: 10,
-    }
+    },
+    cart: {
+      defaultDeliveryFee: 20,
+    },
   };
 
   const templates = {
     menuProduct: Handlebars.compile(document.querySelector(select.templateOf.menuProduct).innerHTML),
+    cartProduct: Handlebars.compile(document.querySelector(select.templateOf.cartProduct).innerHTML),
   };
 
   class Product { //! Przy tworzeniu każdej instancji uruchamia się funkcja konstruktora, która uruchamia dla danego obiektu metodę renderInMenu.
@@ -111,6 +137,7 @@
 
     }
 
+    //! Przygotowanie referencji do np. inputów
     getElements(){
       const thisProduct = this;
 
@@ -417,6 +444,43 @@
     }
   }
 
+  class Cart {
+    constructor(element) {
+      const thisCart = this;
+
+      thisCart.products = [];
+
+      thisCart.getElements(element);
+      thisCart.initActions();
+
+      //c('new Cart', thisCart);
+    }
+
+    //! Przygotowanie referencji do np. selectorów
+    getElements(element) { // Argument element, który otrzymaliśmy w konstruktorze jest tylko referencją elementu DOM
+      const thisCart = this;
+
+      thisCart.dom = {};
+
+      thisCart.dom.wrapper = element;
+
+      //! To jest definicja właściwości w metodzie `getElements(element)`
+      thisCart.dom.toggleTrigger = thisCart.dom.wrapper.querySelector(select.cart.toggleTrigger); // '.cart__summary'
+    }
+
+    initActions() {
+      const thisCart = this;
+
+      //! Dodajemy listener eventu 'click' na elemencie `thisCart.dom.toggleTrigger` // '.cart__summary'
+      thisCart.dom.toggleTrigger.addEventListener('click', function() {
+        c('clicked');
+
+        //! Handler toggluje klasę zapisaną w (classNames.cart.wrapperActive) na elemencie `thisCart.dom.wrapper`
+        thisCart.dom.wrapper.classList.toggle(classNames.cart.wrapperActive);
+      });
+    }
+  }
+
   const app = {
     initMenu: function() { //! Metoda app.initMenu przejdzie po każdym produkcie z osobna i stworzy dla niego instancję Product, czego
       //! wynikiem będzie również utworzenie na stronie reprezentacji HTML każdego z produktów w thisApp.data.products.
@@ -444,6 +508,15 @@
       thisApp.data = dataSource;
     },
 
+    initCart: function() { // inicjacja instancji koszyka // W aplikacji będzie tylko jeden koszyk, więc wykorzystujemy tę klasę tylko raz.
+      const thisApp = this;
+
+      const cartElem = document.querySelector(select.containerOf.cart); // Konstruktor klasy `Cart` oczekuje na przekazanie referencji do diva, w którym ten koszyk ma być obecny.
+
+      //! Przekazujemy klasie `Cart` wrapper (czyli kontener, element okalający) koszyka.
+      thisApp.cart = new Cart(cartElem);
+    },
+
     init: function(){
       const thisApp = this;
       console.log('*** App starting ***');
@@ -467,7 +540,8 @@
       //! Metoda ta jest wywoływana po wcześniejszej, gdyż korzysta z przygotowanej wcześniej referencji do danych (thisApp.data).
       //! Jej zadaniem jest przejście po wszystkich obiektach produktów z thisApp.data.products (cake, breakfast itd.) i utworzenie
       //! dla każdego z nich instancji klasy Product.
-      //!
+
+      thisApp.initCart(); // To wywołanie uruchamia się jako czwarte.
     },
   };
 
