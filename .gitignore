@@ -1,5 +1,6 @@
 # CUSTOM
 .DS_Store
+launch.json
 
 # Logs
 logs

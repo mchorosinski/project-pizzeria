@@ -243,6 +243,7 @@
       thisProduct.cartButton.addEventListener('click', function(event){
         event.preventDefault();
         thisProduct.processOrder();
+        thisProduct.addToCart();
       });
     }
 
@@ -350,6 +351,24 @@
       thisProduct.amountWidgetElem.addEventListener('updated', function() {
         thisProduct.processOrder();
       });
+    }
+
+    addToCart() {
+      const thisProduct = this;
+
+      //! metoda
+      app.cart.add(thisProduct);
+    }
+
+    prepareCartProduct() {
+      const thisProduct = this;
+
+
+      //! Obiekt, który posiada tylko niezbędne dla koszyka informacje.
+      const productSummary = {
+
+      };
+      c('Summary', productSummary);
     }
   }
 
@@ -478,6 +497,13 @@
         //! Handler toggluje klasę zapisaną w (classNames.cart.wrapperActive) na elemencie `thisCart.dom.wrapper`
         thisCart.dom.wrapper.classList.toggle(classNames.cart.wrapperActive);
       });
+    }
+
+    add(menuProduct) {
+      // const thisCart = this;
+
+      c('adding product', menuProduct);
+
     }
   }
 
