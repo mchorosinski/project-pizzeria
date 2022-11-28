@@ -162,7 +162,7 @@
 
       //! Właściwość thisProduct.amountWidgetElem, kórej wartością jest referencja do elementu o selektorze select.menuProduct.amountWidget
       thisProduct.amountWidgetElem = thisProduct.element.querySelector(select.menuProduct.amountWidget); // '.widget-amount'
-      c('thisProduct.amountWidgetElem:', thisProduct.amountWidgetElem);
+      //c('thisProduct.amountWidgetElem:', thisProduct.amountWidgetElem);
 
     }
 
@@ -336,6 +336,7 @@
 
       // update calculated price in the HTML
 
+      thisProduct.priceSingle = price; // każdorazowe uruchomienie processOrder będzie równało się także z aktualizacją `thisProduct.priceSingle`, czyli ceny jednostkowej potrzebnej później w `prepareCartProduct`
       thisProduct.priceElem.innerHTML = price;
     }
 
@@ -356,19 +357,23 @@
     addToCart() {
       const thisProduct = this;
 
-      //! metoda
-      app.cart.add(thisProduct);
+      //! przekazywanie tego, co zwróci metoda `prepareCartProduct`, czyli wybranych opcji z thisProduct
+      app.cart.add(thisProduct.prepareCartProduct()); //! Zapamiętać: przekazywana metoda musi mieć końcowe nawiasy...
     }
 
     prepareCartProduct() {
       const thisProduct = this;
 
-
       //! Obiekt, który posiada tylko niezbędne dla koszyka informacje.
-      const productSummary = {
-
+      const productSummary = { // właściwości w obiekcie to: `id`, `name`, `amount`
+        id: thisProduct.id,
+        name: thisProduct.data.name,
+        amount: thisProduct.amountWidget.value,
+        priceSingle: thisProduct.priceSingle,
+        price: thisProduct.priceSingle * thisProduct.amountWidget.value, // czyli "total price"
+        params: {},
       };
-      c('Summary', productSummary);
+      return(productSummary); //w ten sposób funkcja będzie zwracała cały obiekt podsumowania
     }
   }
 
