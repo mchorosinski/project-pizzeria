@@ -86,8 +86,8 @@
     constructor(id, data) {
       const thisProduct = this;
 
-      thisProduct.id = id;
-      thisProduct.data = data;
+      thisProduct.id = id; // `id` to w data.js: `cake`, `breakfast`, `pizza`, `salad`
+      thisProduct.data = data; // tutaj zawarte są wszystkie dane np. z "pizza" w data.js -> `name`, `price`, `descrtiption`, `images`
 
       thisProduct.renderInMenu();
       thisProduct.getElements();
@@ -329,14 +329,14 @@
         }
       }
 
+      // zapis poniżej jest ważny ze względu na `productSummary`
+      thisProduct.priceSingle = price; // każdorazowe uruchomienie processOrder będzie równało się także z aktualizacją `thisProduct.priceSingle`, czyli ceny jednostkowej potrzebnej później w `prepareCartProduct`
+
       /* multiply price by amount */
 
       //! Tuż przed wyświetleniem ceny obliczonej z uwzględnieniem opcji produktu, pomnożymy ją przez ilość sztuk wybraną w widgecie.
       price *= thisProduct.amountWidget.value;
 
-      // update calculated price in the HTML
-
-      thisProduct.priceSingle = price; // każdorazowe uruchomienie processOrder będzie równało się także z aktualizacją `thisProduct.priceSingle`, czyli ceny jednostkowej potrzebnej później w `prepareCartProduct`
       thisProduct.priceElem.innerHTML = price;
     }
 
