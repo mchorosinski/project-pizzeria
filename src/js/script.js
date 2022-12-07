@@ -141,6 +141,8 @@
     getElements(){
       const thisProduct = this;
 
+      thisProduct.dom = {};
+
       thisProduct.accordionTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
       //c('thisProduct.accordionTrigger', thisProduct.accordionTrigger);
 
@@ -371,10 +373,72 @@
         amount: thisProduct.amountWidget.value,
         priceSingle: thisProduct.priceSingle,
         price: thisProduct.priceSingle * thisProduct.amountWidget.value, // czyli "total price"
-        params: {},
+        params: thisProduct.prepareCartProductParams(),
       };
       return(productSummary); //w ten sposób funkcja będzie zwracała cały obiekt podsumowania
     }
+
+    prepareCartProductParams() {
+      const thisProduct = this;
+
+      // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
+
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      //c('formData', formData);
+
+      // add an empty object `params` which contains all the categories
+
+      const params = {};
+
+      // for every category (param)...
+
+      for(let paramId in thisProduct.data.params) {
+        //! pętla for..in w zmiennej iteracyjnej zwraca zawsze tylko nazwę właściwości. Czyli np. paramId dla np. toppings i sauce
+        //! będzie tylko samą nazwą właściwości – toppings i sauce
+
+        // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
+        //! Ta dodatkowa linijka dba o to, aby dostać się do całego obiektu dostępnego pod tą właściwością.
+        //! `paramId` to po prostu nazwa kategorii, np. "toppings", zaś `optionId` to nazwa opcji, np. "olives".
+
+        const param = thisProduct.data.params[paramId];
+        //c(paramId, param);
+
+        // create category param in `params` const eg. params = { ingredients: { name: 'Ingredients', options: {}}}
+
+        params[paramId] = { //! `params` to z kolei obiekt z dokładniejszymi danymi z danego paramu (czyli `paramId`).
+          label: param.label, // Stąd np. `param.label` to np. "Sauce", "Toppuings", "pizza crust"...
+          options: {} // Z kolei `option.label` to byłyby np. "Olives"...
+        };
+
+        // for every option in this category
+        //! `optionId` jest w tym przypadku zmienną iteracyjną i zwraca np. cucumber, tomatoes, olives, feta, gluten, cheese
+
+        for(let optionId in param.options) {
+          //c('optionId:', optionId);
+
+          // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+          //! stała `option` zwraca już konkretny obiekt w optionId, np. { label: 'Tomatoes', price: 1, default: true }
+
+          const option = param.options[optionId];
+          c('option:', option);
+
+          // check if `option` was selected and in case it was, add to `params[paramId].options` previously selected option
+          //! 'params' to sauce, toppings, crust; 'options' to tomato, olives, standard
+
+          const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
+          if(optionSelected) {
+
+            params[paramId].options[optionId] = option.label;
+            //! W powyższej sytuacji może np. następować próba edycji: `params.toppings.options.olives` = "Olives"
+            // option selected!
+          }
+          c('optionSelected:', optionSelected);
+        }
+      }
+
+      return(params);
+    }
+
   }
 
   class AmountWidget {
@@ -476,6 +540,7 @@
 
       thisCart.getElements(element);
       thisCart.initActions();
+      thisCart.add();
 
       //c('new Cart', thisCart);
     }
@@ -490,6 +555,8 @@
 
       //! To jest definicja właściwości w metodzie `getElements(element)`
       thisCart.dom.toggleTrigger = thisCart.dom.wrapper.querySelector(select.cart.toggleTrigger); // '.cart__summary'
+
+      thisCart.dom.productList = thisCart.dom.wrapper.querySelector(select.cart.productList); // '.cart__order-summary'
     }
 
     initActions() {
@@ -504,11 +571,36 @@
       });
     }
 
-    add(menuProduct) {
-      // const thisCart = this;
+    add(menuProduct) { // metoda dodająca produkty do koszyka
+      const thisCart = this;
 
       c('adding product', menuProduct);
 
+      /* [DONE] generate HTML based on template */
+      // powstaje kod HTML listy produktów
+
+      const generatedHTML = templates.cartProduct(menuProduct); // jako szablon wykorzystano ten z podstawowymi informacjami o produkcie
+
+      /* [DONE] create DOM using utils.createElementFromHTML */
+
+      //! HTML to zwykły string, a element DOM to obiekt wygenerowany przez przeglądarkę na podstawie kodu HTML.
+      //! Obiekt, który ma właściwości (np. innerHTML czy metody (np. getAttribute).
+      //! JS nie ma wbudowanej metody, która służy do tego celu
+
+      const generatedDOM = utils.createDOMFromHTML(generatedHTML);
+
+      //!/* [NOT NEEDED] find cart (koszyk) container */
+
+      //!const cartContainer = document.querySelector(select.containerOf.cart); // '#cart'
+
+      /* [DONE] add previously generated DOM to dom.productList... */
+
+      /* ...czyli do thisCart.dom.productList = thisCart.dom.wrapper.querySelector(select.cart.productList); // '.cart__order-summary' */
+
+      //! 'appendChild' musi dodać jakiś element, np. div, paragraf, span etc...
+      //! Nie może natomiast umieścić stringa, czyli treści oraz wielu elementów (tj. w jednej linijce kilka elementów po przecinku) w przeciwieństwie do 'append'.
+
+      thisCart.dom.productList.appendChild(generatedDOM);
     }
   }
 
