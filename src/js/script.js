@@ -141,8 +141,6 @@
     getElements(){
       const thisProduct = this;
 
-      thisProduct.dom = {};
-
       thisProduct.accordionTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
       //c('thisProduct.accordionTrigger', thisProduct.accordionTrigger);
 
@@ -420,7 +418,7 @@
           //! stała `option` zwraca już konkretny obiekt w optionId, np. { label: 'Tomatoes', price: 1, default: true }
 
           const option = param.options[optionId];
-          c('option:', option);
+          //c('option:', option);
 
           // check if `option` was selected and in case it was, add to `params[paramId].options` previously selected option
           //! 'params' to sauce, toppings, crust; 'options' to tomato, olives, standard
@@ -432,7 +430,7 @@
             //! W powyższej sytuacji może np. następować próba edycji: `params.toppings.options.olives` = "Olives"
             // option selected!
           }
-          c('optionSelected:', optionSelected);
+          //c('optionSelected:', optionSelected);
         }
       }
 
@@ -540,7 +538,6 @@
 
       thisCart.getElements(element);
       thisCart.initActions();
-      thisCart.add();
 
       //c('new Cart', thisCart);
     }
@@ -601,6 +598,12 @@
       //! Nie może natomiast umieścić stringa, czyli treści oraz wielu elementów (tj. w jednej linijce kilka elementów po przecinku) w przeciwieństwie do 'append'.
 
       thisCart.dom.productList.appendChild(generatedDOM);
+
+      /* [DONE] save chosen products into array `products` (thisCart.products) */
+
+      thisCart.products.push(menuProduct);
+
+      c('thisCart.products:', thisCart.products);
     }
   }
 
