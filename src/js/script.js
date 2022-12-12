@@ -542,8 +542,8 @@
       //c('new Cart', thisCart);
     }
 
-    //! Przygotowanie referencji do np. selectorów
-    getElements(element) { // Argument element, który otrzymaliśmy w konstruktorze jest tylko referencją elementu DOM
+    //! Przygotowanie referencji do np. selectorów, czyli referencji do elementów w HTML
+    getElements(element) { // Argument `element`, który otrzymaliśmy w konstruktorze jest tylko referencją elementu DOM
       const thisCart = this;
 
       thisCart.dom = {};
@@ -571,7 +571,7 @@
     add(menuProduct) { // metoda dodająca produkty do koszyka
       const thisCart = this;
 
-      c('adding product', menuProduct);
+      //c('adding product', menuProduct);
 
       /* [DONE] generate HTML based on template */
       // powstaje kod HTML listy produktów
@@ -599,11 +599,62 @@
 
       thisCart.dom.productList.appendChild(generatedDOM);
 
-      /* [DONE] save chosen products into array `products` (thisCart.products) */
+      /* [DONE] save chosen products into array `products` (thisCart.products) and start new instance of `CartProduct` */
 
-      thisCart.products.push(menuProduct);
-
+      thisCart.products.push(new CartProduct(menuProduct, generatedDOM));
       c('thisCart.products:', thisCart.products);
+    }
+  }
+
+  class CartProduct {
+    // Pierwszy argument przyjmuje referencję do obiektu podsumowania, zaś drugi referencję do utworzonego dla tego produktu elementu w HTML-u (generatedDOM)
+    constructor(menuProduct, element) {
+      const thisCartProduct = this;
+
+      // właściwości z argumentu `menuProduct` przypisane do pojedynczych właściwości
+      thisCartProduct.id = menuProduct.id;
+      thisCartProduct.amount = menuProduct.amount;
+      thisCartProduct.name = menuProduct.name;
+      thisCartProduct.price = menuProduct.price;
+      thisCartProduct.pticeSingle = menuProduct.priceSingle;
+      thisCartProduct.params = menuProduct.params;
+
+      thisCartProduct.getElements(element); // `element` to referencja do oryginalnego elementu DOM
+      thisCartProduct.initAmountWidget();
+
+      c('new Cart Product', thisCartProduct);
+    }
+
+    //! Przygotowanie referencji do np. selectorów, czyli referencji do elementów w HTML
+    getElements(element) { // Argument `element`, który otrzymaliśmy w konstruktorze jest tylko referencją elementu DOM
+      const thisCartProduct = this;
+
+      thisCartProduct.dom = {};
+
+      thisCartProduct.dom.wrapper = element;
+
+      thisCartProduct.dom.AmountWidget = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.amountWidget); // '.widget-amount'
+
+      thisCartProduct.dom.price = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.price); // '.cart__product-price'
+
+      thisCartProduct.dom.edit = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.edit); // '[href="#edit"]'
+
+      thisCartProduct.dom.remove = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.remove); // '[href="#remove"]'
+    }
+
+    //! Metoda initAmountWidget jest odpowiedzialna za utworzenie nowej instancji klasy AmountWidget i zapisywanie jej we właściwości produktu
+    //! Od razu przekazujemy do konstruktora referencję do naszego diva z inputem i buttonami tak, jak oczekiwała na to klasa AmountWidget
+    initAmountWidget() {
+      const thisCartProduct = this;
+
+      // tworzenie nowej instancji klasy `AmountWidget` równocześnie przekazując jej odpowiedni element, na którym ma pracować
+      thisCartProduct.amountWidget = new AmountWidget(thisCartProduct.amountWidgetElem);
+
+      //! Nasłuchiwanie customowego eventu = Nasłuchuje na element `thisCartProduct.dom.amountWidgetElem.addEventListener` i na zdarzenie `click`.
+      //? Dlaczego nasłuchujemy właśnie na ten element? Bo to na nim emitowaliśmy nasz event (thisWidget.element to referencja do tego samego identycznego elementu co thisProduct.amountWidgetElem).
+      thisCartProduct.dom.amountWidgetElem.addEventListener('click', function() {
+        thisCartProduct.price = thisCartProduct.priceSingle * thisCartProduct.amount;
+      });
     }
   }
 
