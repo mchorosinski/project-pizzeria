@@ -613,7 +613,7 @@
 
       // właściwości z argumentu `menuProduct` przypisane do pojedynczych właściwości
       thisCartProduct.id = menuProduct.id;
-      thisCartProduct.amount = menuProduct.amount;
+      thisCartProduct.amount = menuProduct.amount; // liczba nowych sztuk
       thisCartProduct.name = menuProduct.name;
       thisCartProduct.price = menuProduct.price;
       thisCartProduct.pticeSingle = menuProduct.priceSingle;
@@ -633,13 +633,14 @@
 
       thisCartProduct.dom.wrapper = element;
 
-      thisCartProduct.dom.AmountWidget = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.amountWidget); // '.widget-amount'
+      thisCartProduct.dom.amountWidget = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.amountWidget); // '.widget-amount'
 
       thisCartProduct.dom.price = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.price); // '.cart__product-price'
 
       thisCartProduct.dom.edit = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.edit); // '[href="#edit"]'
 
       thisCartProduct.dom.remove = thisCartProduct.dom.wrapper.querySelector(select.cartProduct.remove); // '[href="#remove"]'
+
     }
 
     //! Metoda initAmountWidget jest odpowiedzialna za utworzenie nowej instancji klasy AmountWidget i zapisywanie jej we właściwości produktu
@@ -647,13 +648,19 @@
     initAmountWidget() {
       const thisCartProduct = this;
 
-      // tworzenie nowej instancji klasy `AmountWidget` równocześnie przekazując jej odpowiedni element, na którym ma pracować
-      thisCartProduct.amountWidget = new AmountWidget(thisCartProduct.amountWidgetElem);
+      // tworzenie nowej instancji klasy `AmountWidget` równocześnie przekazując jej odpowiedni element, na którym ma pracować oraz liczbę nowych sztuk
+      thisCartProduct.amountWidget = new AmountWidget(thisCartProduct.dom.amountWidget);
 
-      //! Nasłuchiwanie customowego eventu = Nasłuchuje na element `thisCartProduct.dom.amountWidgetElem.addEventListener` i na zdarzenie `click`.
-      //? Dlaczego nasłuchujemy właśnie na ten element? Bo to na nim emitowaliśmy nasz event (thisWidget.element to referencja do tego samego identycznego elementu co thisProduct.amountWidgetElem).
-      thisCartProduct.dom.amountWidgetElem.addEventListener('click', function() {
-        thisCartProduct.price = thisCartProduct.priceSingle * thisCartProduct.amount;
+      //! Nasłuchiwanie customowego eventu = Nasłuchuje na element `thisCartProduct.dom.amountWidget.addEventListener` i na zdarzenie `updated`.
+      //? Dlaczego nasłuchujemy właśnie na ten element? Bo to na nim emitowaliśmy nasz event.
+      //! Właściwość thisCartProduct.dom.amountWidget, kórej wartością jest referencja do elementu o selektorze `select.cartProduct.amountWidget` - '.widget-amount'
+      thisCartProduct.dom.amountWidget.addEventListener('updated', function() {
+        thisCartProduct.amount = thisCartProduct.amountWidget.value; // liczba nowych sztuk
+        thisCartProduct.priceUpdated = thisCartProduct.amount * thisCartProduct.priceSingle;
+
+        //aby zmienić swój innerHTML, obiekt musi być elementem HTML-owym
+        thisCartProduct.dom.price.innerHTML = thisCartProduct.priceUpdated; // aktualizacja kwoty widocznej w samej reprezentacji HTML-a tego produktu - referencja do odpowiedniego elementu w HTML
+        console.log('thisCartProduct.amount:', thisCartProduct.amount);
       });
     }
   }
