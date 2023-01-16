@@ -181,7 +181,7 @@
 
       clickableTrigger.addEventListener('click', function(event) {
 
-        c('clicked');
+        //c('clicked');
 
         /* [DONE] prevent default action for event */
 
@@ -525,7 +525,9 @@
       //! Metody `announce` tworzy instancje klasy Event, wbudowanej w silnik JS. Jest to klasa odpowiedzialna za stworzenie obiektu "eventu". Następnie, ten event zostanie wyemitowany na kontenerze widgetu.
       //! CZYLI: użytkownik klika gdzieś na stronie, to przeglądarka robi dokładnie to samo co my teraz.
       //! Również tworzy event click w podobny sposób przy użyciu klasy Event, a następnie emituje go na tym klikniętym elemencie za pomocą metody `dispatchEvent` - później koniecznie jest nasłuchiwanie tego customowego zdarzenia w `initAmountWidget`.
-      const event = new Event('updated');
+      const event = new CustomEvent('updated', {
+        bubbles: true //! włączamy właściwość `bubbles`
+      });
       thisWidget.element.dispatchEvent(event);
     }
   }
@@ -554,6 +556,19 @@
       thisCart.dom.toggleTrigger = thisCart.dom.wrapper.querySelector(select.cart.toggleTrigger); // '.cart__summary'
 
       thisCart.dom.productList = thisCart.dom.wrapper.querySelector(select.cart.productList); // '.cart__order-summary'
+
+      // referencja do elementu pokazującego koszt przesyłki
+      thisCart.dom.deliveryFee = thisCart.dom.wrapper.querySelector(select.cart.deliveryFee); // '.cart__order-delivery .cart__order-price-sum strong'
+
+      // referencja do elementu pokazującego cenę końcową, ale bez kosztów przesyłki
+      thisCart.dom.subtotalPrice = thisCart.dom.wrapper.querySelector(select.cart.subtotalPrice); // '.cart__order-subtotal .cart__order-price-sum strong'
+
+      // referencja do elementów pokazujących cenę końcową
+      thisCart.dom.totalPrice = thisCart.dom.wrapper.querySelectorAll(select.cart.totalPrice); // '.cart__total-price strong, .cart__order-total .cart__order-price-sum strong'
+
+      // referencja do elementu pokazującego liczbę sztuk
+      thisCart.dom.totalNumber = thisCart.dom.wrapper.querySelector(select.cart.totalNumber); // `.cart__total-number`
+
     }
 
     initActions() {
@@ -561,10 +576,17 @@
 
       //! Dodajemy listener eventu 'click' na elemencie `thisCart.dom.toggleTrigger` // '.cart__summary'
       thisCart.dom.toggleTrigger.addEventListener('click', function() {
-        c('clicked');
+        //c('clicked');
 
         //! Handler toggluje klasę zapisaną w (classNames.cart.wrapperActive) na elemencie `thisCart.dom.wrapper`
         thisCart.dom.wrapper.classList.toggle(classNames.cart.wrapperActive);
+      });
+
+      //! Nasłuchujemy tutaj na listę produktów, w której umieszczamy produkty, w których znajduje się widget liczby sztuk, który generuje ten event.
+      //! Dzięki właściwości bubbles "usłyszymy" go na tej liście. Jest dla nas informacja, że w "którymś" z produktów doszło do zmiany ilości sztuk.
+      //! Nieważne nawet w którym. Ważne jest to, że w takiej sytuacji należy uruchomić update, aby ponownie przeliczyć kwoty.
+      thisCart.dom.productList.addEventListener('updated', function() {
+        thisCart.update();
       });
     }
 
@@ -602,7 +624,61 @@
       /* [DONE] save chosen products into array `products` (thisCart.products) and start new instance of `CartProduct` */
 
       thisCart.products.push(new CartProduct(menuProduct, generatedDOM));
-      c('thisCart.products:', thisCart.products);
+      //c('thisCart.products:', thisCart.products);
+
+      thisCart.update();
+    }
+
+    update() {
+      const thisCart = this;
+
+
+      const deliveryFee = settings.cart.defaultDeliveryFee;
+
+      thisCart.totalNumber = 0; // odpowiada całościowej liczbie sztuk - wartość startowa to 0
+      thisCart.subtotalPrice = 0; // zsumowana cena za wszystko (chociaż bez kosztu dostawy) - wartość startowa to 0
+      thisCart.totalPrice = 0; // cena całkowita, czyli kwota potrzebna do kupna wszystkich produktów z koszyka i koszt dostawy - wartość startowa to 0
+
+      //! Pętla for...of umożliwia wykonywanie operacji na obiektach iterowalnych, takich jak tablice lub mapy.
+
+      for (let product of thisCart.products) {
+        thisCart.totalNumber += product.amount; // zwiększa liczbę sztuk danego produktu
+        thisCart.subtotalPrice += product.price; // zwiększa się o cenę całkowitą
+
+        c('product:', product);
+      }
+
+      if (thisCart.subtotalPrice != 0) { // `!=` oznacza różne wartości (jeśli nie równa się zero) / czyli jeśli nie ma produktów, więc nie ma dostawy, a zatem nie ma kosztów dostawy.
+        thisCart.totalPrice = thisCart.subtotalPrice + deliveryFee;
+      } else {
+        thisCart.totalPrice = 0;
+      }
+      c('deliveryFee:', deliveryFee, 'totalNumber:', thisCart.totalNumber, 'subtotalPrice', thisCart.subtotalPrice, 'totalPrice:', thisCart.totalPrice);
+
+      /* LUB
+      if (thisCart.totalNumber === 0) {
+      thisCart.deliveryFee = 0;
+      thisCart.totalPrice = 0;
+      } else {
+      thisCart.totalPrice = thisCart.subtotalPrice + deliveryFee;
+      }
+      */
+
+      /* [DONE] update the HTML Cart code within the total number of the items, subtotal price, total price and delivery fee (if 0 itmes then no delivery fee) */
+
+      thisCart.dom.totalNumber.innerHTML = thisCart.totalNumber;
+
+      thisCart.dom.subtotalPrice.innerHTML = thisCart.subtotalPrice;
+
+      for(let price of thisCart.dom.totalPrice){
+        price.innerHTML = thisCart.totalPrice;
+      }
+
+      if (thisCart.deliveryFee == 0) { //  operator porównania `00` = równa wartość
+        deliveryFee == 0;
+      } else {
+        thisCart.dom.deliveryFee.innerHTML = deliveryFee;
+      }
     }
   }
 
@@ -616,13 +692,13 @@
       thisCartProduct.amount = menuProduct.amount; // liczba nowych sztuk
       thisCartProduct.name = menuProduct.name;
       thisCartProduct.price = menuProduct.price;
-      thisCartProduct.pticeSingle = menuProduct.priceSingle;
+      thisCartProduct.priceSingle = menuProduct.priceSingle;
       thisCartProduct.params = menuProduct.params;
 
       thisCartProduct.getElements(element); // `element` to referencja do oryginalnego elementu DOM
       thisCartProduct.initAmountWidget();
 
-      c('new Cart Product', thisCartProduct);
+      //c('new Cart Product', thisCartProduct);
     }
 
     //! Przygotowanie referencji do np. selectorów, czyli referencji do elementów w HTML
@@ -660,7 +736,6 @@
 
         //aby zmienić swój innerHTML, obiekt musi być elementem HTML-owym
         thisCartProduct.dom.price.innerHTML = thisCartProduct.priceUpdated; // aktualizacja kwoty widocznej w samej reprezentacji HTML-a tego produktu - referencja do odpowiedniego elementu w HTML
-        console.log('thisCartProduct.amount:', thisCartProduct.amount);
       });
     }
   }
