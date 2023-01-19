@@ -469,7 +469,7 @@
       //! Nawet wpisanie więc 10 da nam nie liczbę 10, a tekst '10'. parseInt zadba o konwersję takiej przykładowej '10' do liczby 10.
       const newValue = parseInt(value); // przekonwertowanie argumentu na liczbę
 
-      /* TODO: Add validation */
+      /* [DONE] Add validation */
 
       //! Sprawdzamy, czy wartość, która przychodzi do funkcji, jest inna niż ta, która jest już aktualnie w `thisWidget.value` oraz ustawiamy zakres akceptowalnych wartości, tj. liczba sztuk: 1-10.
       if(thisWidget.value !== newValue && !isNaN(newValue) && newValue >= settings.amountWidget.defaultMin && newValue <= settings.amountWidget.defaultMax) { // `!==` ozanacza różne wartości i typy danych; `!isNaN` nie jest nullem, ponieważ jeśli parseInt natrafi na tekst, którego nie da się skonwertować na liczbę (np. abc), to zwróci null
@@ -588,6 +588,11 @@
       thisCart.dom.productList.addEventListener('updated', function() {
         thisCart.update();
       });
+
+      thisCart.dom.productList.addEventListener('remove', function(event) {
+        thisCart.remove(event.detail.cartProduct);
+      });
+
     }
 
     add(menuProduct) { // metoda dodająca produkty do koszyka
@@ -645,7 +650,7 @@
         thisCart.totalNumber += product.amount; // zwiększa liczbę sztuk danego produktu
         thisCart.subtotalPrice += product.price; // zwiększa się o cenę całkowitą
 
-        c('product:', product);
+        //c('product:', product);
       }
 
       if (thisCart.subtotalPrice != 0) { // `!=` oznacza różne wartości (jeśli nie równa się zero) / czyli jeśli nie ma produktów, więc nie ma dostawy, a zatem nie ma kosztów dostawy.
@@ -653,7 +658,7 @@
       } else {
         thisCart.totalPrice = 0;
       }
-      c('deliveryFee:', deliveryFee, 'totalNumber:', thisCart.totalNumber, 'subtotalPrice', thisCart.subtotalPrice, 'totalPrice:', thisCart.totalPrice);
+      //c('deliveryFee:', deliveryFee, 'totalNumber:', thisCart.totalNumber, 'subtotalPrice', thisCart.subtotalPrice, 'totalPrice:', thisCart.totalPrice);
 
       /* LUB
       if (thisCart.totalNumber === 0) {
@@ -674,11 +679,30 @@
         price.innerHTML = thisCart.totalPrice;
       }
 
-      if (thisCart.deliveryFee == 0) { //  operator porównania `00` = równa wartość
+      if (thisCart.deliveryFee == 0) { //  operator porównania `==` = równa wartość
         deliveryFee == 0;
       } else {
         thisCart.dom.deliveryFee.innerHTML = deliveryFee;
       }
+
+      c('Products List:', thisCart.products);
+    }
+
+    remove(event) { //! Odwołanie do Customowego Eventu w CartProduct // Cart musi wiedzieć, co dokładnie trzeba usunąć. W tym przypadku przekazujemy więc wraz z eventem dodatkowo odwołanie do tej instancji, dla której kliknięto guzik usuwania.
+      const thisCart = this;
+
+      /* remove product's DOM  */
+      //! Usunięcie elementu z DOM można wykonać za pomocą metody remove wykonanej na elemencie, który ma zostać usunięty.
+
+
+
+      /* locate and remove the product from an array */
+
+      const removeProduct = thisCart.products.indexOf(event);
+      thisCart.products.splice(removeProduct, 10); // array.splice(index, howmany (Number of items to be removed.), item1, ....., itemX (New elements(s) to be added.))
+      c('removeProduct', removeProduct);
+
+      thisCart.update();
     }
   }
 
@@ -697,6 +721,7 @@
 
       thisCartProduct.getElements(element); // `element` to referencja do oryginalnego elementu DOM
       thisCartProduct.initAmountWidget();
+      thisCartProduct.initActions();
 
       //c('new Cart Product', thisCartProduct);
     }
@@ -732,10 +757,43 @@
       //! Właściwość thisCartProduct.dom.amountWidget, kórej wartością jest referencja do elementu o selektorze `select.cartProduct.amountWidget` - '.widget-amount'
       thisCartProduct.dom.amountWidget.addEventListener('updated', function() {
         thisCartProduct.amount = thisCartProduct.amountWidget.value; // liczba nowych sztuk
-        thisCartProduct.priceUpdated = thisCartProduct.amount * thisCartProduct.priceSingle;
+        thisCartProduct.price = thisCartProduct.amount * thisCartProduct.priceSingle;
 
         //aby zmienić swój innerHTML, obiekt musi być elementem HTML-owym
-        thisCartProduct.dom.price.innerHTML = thisCartProduct.priceUpdated; // aktualizacja kwoty widocznej w samej reprezentacji HTML-a tego produktu - referencja do odpowiedniego elementu w HTML
+        thisCartProduct.dom.price.innerHTML = thisCartProduct.price; // aktualizacja kwoty widocznej w samej reprezentacji HTML-a tego produktu - referencja do odpowiedniego elementu w HTML
+      });
+    }
+
+    remove() {
+      const thisCartProduct = this;
+
+      const event = new CustomEvent('remove', {
+        bubbles: true,
+        //! `detail` możesz rozumieć jako "szczegóły", które mają być przekazywane wraz z eventem.
+        detail: { // W tej właściwości można przekazać dowolne informacje do handlera eventu. Bowiem teraz `Cart` będzie musiało wiedzieć, co dokładnie trzeba usunąć. W tym przypadku przekazujemy więc wraz z eventem dodatkowo odwołanie do tej instancji, dla której kliknięto guzik usuwania.
+          cartProduct: thisCartProduct,
+        },
+      });
+
+      thisCartProduct.dom.wrapper.dispatchEvent(event);
+      c('clicked remove');
+    }
+
+    initActions() {
+      const thisCartProduct = this;
+
+      //! Dodajemy listener eventu 'click' na elemencie `thisCartProduct.dom.edit` // '[href="#edit"]'
+      thisCartProduct.dom.edit.addEventListener('click', function(event) {
+
+        event.preventDefault();
+      });
+
+      //! Dodajemy listener eventu 'click' na elemencie `thisCartProduct.dom.remove` // '[href="#remove"]'
+      thisCartProduct.dom.remove.addEventListener('click', function(event) {
+
+        event.preventDefault();
+
+        thisCartProduct.remove();
       });
     }
   }
