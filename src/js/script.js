@@ -688,19 +688,22 @@
       c('Products List:', thisCart.products);
     }
 
+
     remove(event) { //! Odwołanie do Customowego Eventu w CartProduct // Cart musi wiedzieć, co dokładnie trzeba usunąć. W tym przypadku przekazujemy więc wraz z eventem dodatkowo odwołanie do tej instancji, dla której kliknięto guzik usuwania.
+      //! Każdy `cartProduct` w koszyku jest przechowywany na dwa sposoby: 1. instancja `cartProductu` jest przechowywana w `thisCart.products`; 2. div reprezentujący ten `carProduct` jest zapisany w HTML-u
       const thisCart = this;
 
       /* remove product's DOM  */
       //! Usunięcie elementu z DOM można wykonać za pomocą metody remove wykonanej na elemencie, który ma zostać usunięty.
+      //! Najprościej taką reprezentację produktu w HTML rozpoznać po wrapperze - "opakowaniu". Każda bowiem instancja `cartProduct` ma właściwość `dom.wrapper`, która wskazuje wlaśnie na tę reprezentację w HTML tego produktu.
 
-
+      event.dom.wrapper.remove();
 
       /* locate and remove the product from an array */
 
       const removeProduct = thisCart.products.indexOf(event);
       thisCart.products.splice(removeProduct, 10); // array.splice(index, howmany (Number of items to be removed.), item1, ....., itemX (New elements(s) to be added.))
-      c('removeProduct', removeProduct);
+      //c('removeProduct', removeProduct);
 
       thisCart.update();
     }
