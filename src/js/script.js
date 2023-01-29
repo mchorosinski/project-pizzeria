@@ -74,6 +74,11 @@
     cart: {
       defaultDeliveryFee: 20,
     },
+    db: {
+      url: '//localhost:3131',
+      products: 'products',
+      orders: 'orders',
+    },
   };
 
   const templates = {
@@ -569,6 +574,15 @@
       // referencja do elementu pokazującego liczbę sztuk
       thisCart.dom.totalNumber = thisCart.dom.wrapper.querySelector(select.cart.totalNumber); // `.cart__total-number`
 
+      // referencja do elementu formularza
+      thisCart.dom.form = thisCart.dom.wrapper.querySelector(select.cart.form); // '.cart__order'
+
+      // referencja do elementu z adresem
+      thisCart.dom.address = thisCart.dom.wrapper.querySelector(select.cart.address); // '[name="address"]'
+
+      // referencja do elementu z numerem telefonu
+      thisCart.dom.phone = thisCart.dom.wrapper.querySelector(select.cart.phone); // '[name="phone"]'
+
     }
 
     initActions() {
@@ -591,6 +605,13 @@
 
       thisCart.dom.productList.addEventListener('remove', function(event) {
         thisCart.remove(event.detail.cartProduct);
+      });
+
+      //! Dodajemy nasłuchiwacz (listener) do formularza (thisCart.dom.form - '.cart__order')
+      thisCart.dom.form.addEventListener('submit', function(event) {
+        event.preventDefault(); // funkcja callback zawiera instrukcję, która blokuje domyślne zachowanie formularza
+
+        thisCart.sendOrder(); // zadaniem tej metody (w funkcji callback) jest kompletowanie informacji o zamówieniu i późniejsza jego wysyłka do serwera
       });
 
     }
@@ -675,6 +696,7 @@
 
       thisCart.dom.subtotalPrice.innerHTML = thisCart.subtotalPrice;
 
+
       for(let price of thisCart.dom.totalPrice){
         price.innerHTML = thisCart.totalPrice;
       }
@@ -684,7 +706,6 @@
       } else {
         thisCart.dom.deliveryFee.innerHTML = deliveryFee;
       }
-
       c('Products List:', thisCart.products);
     }
 
@@ -693,19 +714,72 @@
       //! Każdy `cartProduct` w koszyku jest przechowywany na dwa sposoby: 1. instancja `cartProductu` jest przechowywana w `thisCart.products`; 2. div reprezentujący ten `carProduct` jest zapisany w HTML-u
       const thisCart = this;
 
-      /* remove product's DOM  */
+      /* [DONE] remove product's DOM  */
       //! Usunięcie elementu z DOM można wykonać za pomocą metody remove wykonanej na elemencie, który ma zostać usunięty.
       //! Najprościej taką reprezentację produktu w HTML rozpoznać po wrapperze - "opakowaniu". Każda bowiem instancja `cartProduct` ma właściwość `dom.wrapper`, która wskazuje wlaśnie na tę reprezentację w HTML tego produktu.
 
       event.dom.wrapper.remove();
 
-      /* locate and remove the product from an array */
+      /* [DONE] locate and remove the product from an array */
 
       const removeProduct = thisCart.products.indexOf(event);
       thisCart.products.splice(removeProduct, 10); // array.splice(index, howmany (Number of items to be removed.), item1, ....., itemX (New elements(s) to be added.))
       //c('removeProduct', removeProduct);
 
       thisCart.update();
+    }
+
+    sendOrder() {
+      const thisCart = this;
+
+      const url = settings.db.url + '/' + settings.db.orders; // endpoint z którym chcemy się połączyć - http://localhost:3131/orders
+
+      const payload = {
+        address: thisCart.dom.address.value, // Aby dojść do wartości elementu input, należy skorzystać z jego właściwości `value`
+        phone: thisCart.dom.phone.value, // Aby dojść do wartości elementu input, należy skorzystać z jego właściwości `value`
+        totalPrice: thisCart.totalPrice,
+        subtotalPrice: thisCart.subtotalPrice,
+        totalNumber: thisCart.totalNumber,
+        deliveryFee: settings.cart.defaultDeliveryFee,
+        products: [],
+      };
+
+      //! tutaj następuje zapełnienie tablicy `payload.products` nie całymi instancjami produktów w koszyku, a tylko mini obiektami z ich podsumowaniem z `getData`, a dokładniej z obiektu `data`.
+      for(let prod of thisCart.products) {
+        payload.products.push(prod.getData());
+      }
+      //c('Zawartość payload', payload);
+
+      //! Przygotowanie danych do wysyłki do serwera
+      //! Serwer komunikuje się z nami przy użyciu formatu JSON, a `payload` to zwykły obiekt JS-owy.
+      //! Musimy więc skonwertować go jeszcze na format JSON. Warto również przy użyciu nagłówków (headers) poinformować serwer o tym,
+      //! że ma spodziewać się właśnie JSON-a:
+
+      //! "Brzydsza" wersja:
+      /*
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+      */
+
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      };
+
+      fetch(url, options)
+        .then(function(response){
+          return response.json();
+        }).then(function(parsedResponse){
+          console.log('parsedResponse', parsedResponse);
+        });
     }
   }
 
@@ -799,6 +873,21 @@
         thisCartProduct.remove();
       });
     }
+
+    getData() {
+      const thisCartProduct = this;
+
+      //! obiekt `data` ma na celu przekazanie wybranych właściwości z `thisCartProduct` pomocnych/niezbędnych przy zamówieniu i wykorzystaniu ich później w metodzie `Cart.sendOrder`, a dokładniej w obiekcie `payload.products`.
+      const data = {
+        id: thisCartProduct.id,
+        amount: thisCartProduct.amount,
+        price: thisCartProduct.price,
+        priceSingle: thisCartProduct.priceSingle,
+        name: thisCartProduct.name,
+        params: thisCartProduct.params,
+      };
+      return(data); //w ten sposób funkcja będzie zwracała cały obiekt `data`
+    }
   }
 
   const app = {
@@ -811,21 +900,54 @@
       for (let productData in thisApp.data.products) {
 
         /*
-        Tworząc nową instancję, przekazujemy do konstruktora aż dwa argumenty. Jako pierwszy chcemy przekazać 'productData'.
+        Tworząc nową instancję, przekazujemy do konstruktora aż dwa argumenty. Jako pierwszy chcemy przekazać 'thisApp.data.products[productData].id'.
         Pętla 'for...in' przechodzi po właściwościach obiektu i pod zmienną przechowuje zawsze tylko i wyłącznie nazwę
         aktualnie "obsługiwanej" właściwości.
         */
-        new Product(productData, thisApp.data.products[productData]); //? Dlaczego 'productData'? <- jest to po prostu zmienna zapisywana w pamięci RAM.
+        new Product(thisApp.data.products[productData].id, thisApp.data.products[productData]); //? Dlaczego 'productData'? <- jest to po prostu zmienna zapisywana w pamięci RAM.
       }
     },
 
     initData: function() {
       const thisApp = this;
 
-      /*
-      'thisApp.data' to tylko referencja do tych samych danych, do których kieruje też stała dataSource.
-      */
-      thisApp.data = dataSource;
+      thisApp.data = {};
+
+      const url = settings.db.url + '/' + settings.db.products; // czyli: http://localhost:3131/products
+
+      fetch(url) // Najpierw za pomocą funkcji fetch wysyłamy zapytanie (request) pod podany adres endpointu - > http://localhost:3131/products
+      //! Należy pamiętać, że odpowiedź jaką otrzymamy jest obiektem typu Response, którego nie możemy wprost odczytać.
+      //! Należy na niej wykonać metodę text lub json, aby uzyskać wartość gotową do odczytu.
+        .then(function(rawResponse){
+          // Dalej konwertujemy tę odpowiedź na obiekt JS-owy
+          return rawResponse.json(); // Następnie otrzyma odpowiedź, która jest w formacie JSON
+          //! JSON Data Types to: string, numbers, obiekt, array, boolean, null
+        })
+      //! Te metoda zwracaja Promise, więc ponownie musimy użyć metody then, aby odczytać sparsowaną odpowiedź serwera.
+        .then(function(parsedResponse){
+          console.log('parsedResponse', parsedResponse);
+
+          /* [DONE] save parsedResponse as thisApp.data.products */
+
+          thisApp.data.products = parsedResponse;
+
+          /* [DONE] execute initMenu method */
+
+          thisApp.initMenu(); // To wywołanie uruchamia się jako drugie.
+          //! Metoda ta jest wywoływana po wcześniejszej, gdyż korzysta z przygotowanej wcześniej referencji do danych (thisApp.data).
+          //! Jej zadaniem jest przejście po wszystkich obiektach produktów z thisApp.data.products (cake, breakfast itd.) i utworzenie
+          //! dla każdego z nich instancji klasy Product.
+
+        });
+
+      console.log('thisApp.data', JSON.stringify(thisApp.data)); // Po otrzymaniu skonwertowanej odpowiedzi parsedResponse, wyświetlamy ją w konsoli.
+
+      /* 1. Połącz się z adresem url przy użyciu metody fetch. */
+      /* 2. Jeśli połączenie się zakończy, to wtedy (pierwsze .then) skonwertuj dane do obiektu JS-owego. */
+      /* 3. Kiedy i ta operacja się zakończy, to wtedy (drugie .then) pokaż w konsoli te skonwertowane dane. */
+
+      /* Zauważ, że obie funkcje w then uruchomią się dopiero w momencie zakończenia jakiejś operacji.
+         Pierwsze then czeka na zakończenie reqestu, a drugie konwersji danych. Wcześniej JS nawet ich nie "dotknie". */
     },
 
     initCart: function() { // inicjacja instancji koszyka // W aplikacji będzie tylko jeden koszyk, więc wykorzystujemy tę klasę tylko raz.
@@ -851,15 +973,9 @@
       wskaże właśnie na app.
       */
 
-      thisApp.initData(); // To wywołanie uruchamia się jako drugie:
+      thisApp.initData(); // To wywołanie uruchamia się jako trzecie:
       //! Ma zadanie przygotować nam łatwy dostęp do danych. Przypisuje więc do app.data (właściwości całego obiektu app) referencję
       //! do dataSource, czyli po prostu danych, z których będziemy korzystać z aplikacji. Znajduje się tam m.in. obiekt products ze strukturą naszych produktów.
-
-
-      thisApp.initMenu(); // To wywołanie uruchamia się jako trzecie.
-      //! Metoda ta jest wywoływana po wcześniejszej, gdyż korzysta z przygotowanej wcześniej referencji do danych (thisApp.data).
-      //! Jej zadaniem jest przejście po wszystkich obiektach produktów z thisApp.data.products (cake, breakfast itd.) i utworzenie
-      //! dla każdego z nich instancji klasy Product.
 
       thisApp.initCart(); // To wywołanie uruchamia się jako czwarte.
     },
