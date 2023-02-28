@@ -1,7 +1,7 @@
 import {select} from '../settings.js';
 import AmountWidget from './AmountWidget.js';
 
-const c = console.log.bind(document);
+//const c = console.log.bind(document);
 
 class CartProduct {
   // Pierwszy argument przyjmuje referencję do obiektu podsumowania, zaś drugi referencję do utworzonego dla tego produktu elementu w HTML-u (generatedDOM)
@@ -73,7 +73,7 @@ class CartProduct {
     });
 
     thisCartProduct.dom.wrapper.dispatchEvent(event);
-    c('clicked remove');
+    //c('clicked remove');
   }
 
   initActions() {

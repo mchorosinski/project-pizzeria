@@ -16,7 +16,7 @@ class Product { //! Przy tworzeniu każdej instancji uruchamia się funkcja kons
     thisProduct.initOrderForm();
     thisProduct.initAmountWidget();
     thisProduct.processOrder();
-    console.log('new Product:', thisProduct);
+    //console.log('new Product:', thisProduct);
   }
 
   renderInMenu() {

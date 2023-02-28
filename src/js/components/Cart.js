@@ -17,7 +17,7 @@ class Cart {
   }
 
   //! Przygotowanie referencji do np. selectorów, czyli referencji do elementów w HTML
-  getElements(element) { // Argument `element`, który otrzymaliśmy w konstruktorze jest tylko referencją elementu DOM
+  getElements(element) { // Argument `element`, który mamy w konstruktorze jest tylko referencją elementu DOM
     const thisCart = this;
 
     thisCart.dom = {};
