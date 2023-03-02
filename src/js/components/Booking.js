@@ -20,7 +20,7 @@ class Booking {
 
     //! generowanie kodu HTML za pomocą szablonu templates.bookingWidget, przy czym nie musimy przekazywać do niego żadnych danych, gdyż ten szablon nie oczekuje na żaden placeholder:
 
-    const generatedHTML = templates.bookingWidget;
+    const generatedHTML = templates.bookingWidget();
 
     thisBooking.dom = {};
 
@@ -32,7 +32,8 @@ class Booking {
 
     thisBooking.dom.peopleAmount = element.querySelector(select.booking.peopleAmount);
     thisBooking.dom.hoursAmount = element.querySelector(select.booking.hoursAmount);
-
+    //console.log('thisBooking.dom.peopleAmount:', thisBooking.dom.peopleAmount);
+    //console.log('thisBooking.dom.hoursAmount:', thisBooking.dom.hoursAmount);
   }
 
   initWidgets() {
@@ -40,15 +41,16 @@ class Booking {
 
     //! tworzenie nowej instancji klasy `AmountWidget` równocześnie przekazując jej odpowiedni element:
 
-    thisBooking.peopleAmountWidget = new AmountWidget(thisBooking.dom.peopleAmount);
+    thisBooking.peopleAmount = new AmountWidget(thisBooking.dom.peopleAmount);
+    //console.log('thisBooking.peopleAmount:', thisBooking.peopleAmount);
 
-    //! Nasłuchiwanie customowego eventu = Nasłuchuje na element `thisBooking.dom.peopleAmountWidget.addEventListener; thisBooking.dom.hoursAmountWidget.addEventListener` i na zdarzenie `updated`.
+    //! Nasłuchiwanie customowego eventu = Nasłuchuje na element `thisBooking.dom.peopleAmount.addEventListener; thisBooking.dom.hoursAmount.addEventListener` i na zdarzenie `updated`.
     //? Dlaczego nasłuchujemy właśnie na ten element? Bo to na nim emitowaliśmy nasz event.
-    thisBooking.dom.peopleAmountWidget.addEventListener('updated', function() {
+    thisBooking.dom.peopleAmount.addEventListener('updated', function() {
     });
 
-    thisBooking.hoursAmountWidget = new AmountWidget(thisBooking.dom.hoursAmount);
-    thisBooking.dom.hoursAmountWidget.addEventListener('updated', function() {
+    thisBooking.hoursAmount = new AmountWidget(thisBooking.dom.hoursAmount);
+    thisBooking.dom.hoursAmount.addEventListener('updated', function() {
     });
 
   }
