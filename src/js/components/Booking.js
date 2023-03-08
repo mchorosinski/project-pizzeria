@@ -36,8 +36,9 @@ class Booking {
     thisBooking.dom.hoursAmount = element.querySelector(select.booking.hoursAmount);
     thisBooking.dom.datePicker = element.querySelector(select.widgets.datePicker.wrapper); // '.date-picker'
     thisBooking.dom.hourPicker = element.querySelector(select.widgets.hourPicker.wrapper); // '.hour-picker'
-    //console.log('thisBooking.dom.peopleAmount:', thisBooking.dom.peopleAmount);
-    //console.log('thisBooking.dom.hoursAmount:', thisBooking.dom.hoursAmount);
+    // console.log('thisBooking.dom.hourPicker', thisBooking.dom.HourPicker);
+    // console.log('thisBooking.dom.peopleAmount:', thisBooking.dom.peopleAmount);
+    // console.log('thisBooking.dom.hoursAmount:', thisBooking.dom.hoursAmount);
   }
 
   initWidgets() {
@@ -50,18 +51,18 @@ class Booking {
 
     //! Nasłuchiwanie customowego eventu = Nasłuchuje na element `thisBooking.dom.peopleAmount.addEventListener; thisBooking.dom.hoursAmount.addEventListener` i na zdarzenie `updated`.
     //? Dlaczego nasłuchujemy właśnie na ten element? Bo to na nim emitowaliśmy nasz event.
-    thisBooking.dom.peopleAmount.addEventListener('updated', function() {
-    });
+    // thisBooking.dom.peopleAmount.addEventListener('updated', function() {
+    // });
 
     thisBooking.hoursAmount = new AmountWidget(thisBooking.dom.hoursAmount);
-    thisBooking.dom.hoursAmount.addEventListener('updated', function() {
-    });
+    // thisBooking.dom.hoursAmount.addEventListener('updated', function() {
+    // });
 
     thisBooking.datePicker = new DatePicker(thisBooking.dom.datePicker);
     // thisBooking.dom.datePicker.addEventListener('updated', function() {
     // });
 
-    thisBooking.hourPicker = new HourPicker(thisBooking.dom.hourPicker);
+    thisBooking.hourPickerElem = new HourPicker(thisBooking.dom.hourPicker);
     // thisBooking.dom.hourPicker.addEventListener('updated', function() {
     // });
 
