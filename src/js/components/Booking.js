@@ -34,9 +34,10 @@ class Booking {
 
     thisBooking.dom.peopleAmount = element.querySelector(select.booking.peopleAmount);
     thisBooking.dom.hoursAmount = element.querySelector(select.booking.hoursAmount);
-    thisBooking.dom.datePicker = element.querySelector(select.widgets.datePicker.wrapper); // '.date-picker'
-    thisBooking.dom.hourPicker = element.querySelector(select.widgets.hourPicker.wrapper); // '.hour-picker'
-    // console.log('thisBooking.dom.hourPicker', thisBooking.dom.HourPicker);
+    thisBooking.dom.datePicker = element.querySelector('.date-picker'); // '.date-picker'
+    thisBooking.dom.hourPicker = element.querySelector('.hour-picker'); // '.hour-picker'
+    console.log('thisBooking.dom.hourPicker', thisBooking.dom.HourPicker);
+    console.log('thisBooking.dom.datePicker', thisBooking.dom.datePicker);
     // console.log('thisBooking.dom.peopleAmount:', thisBooking.dom.peopleAmount);
     // console.log('thisBooking.dom.hoursAmount:', thisBooking.dom.hoursAmount);
   }
