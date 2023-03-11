@@ -12,6 +12,8 @@ class AmountWidget extends BaseWidget { // ta klasa jest rozszerzeniem klasy Bas
     //! metoda `initActions` uruchamia się automatycznie, od razu po utworzeniu instancji.
     thisWidget.initActions();
 
+    thisWidget.setValue(thisWidget.dom.input.value);
+
     //console.log('AmounWidget:', thisWidget);
     //console.log('constructor arguments:', element);
   }

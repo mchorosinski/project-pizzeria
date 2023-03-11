@@ -278,6 +278,9 @@ class Product { //! Przy tworzeniu każdej instancji uruchamia się funkcja kons
   addToCart() {
     const thisProduct = this;
 
+    thisProduct.name = thisProduct.data.name;
+    thisProduct.amount = thisProduct.amountWidget.value;
+
     //! przekazywanie tego, co zwróci metoda `prepareCartProduct`, czyli wybranych opcji z thisProduct
     //app.cart.add(thisProduct.prepareCartProduct()); //! Zapamiętać: przekazywana metoda musi mieć końcowe nawiasy...
 
@@ -286,7 +289,7 @@ class Product { //! Przy tworzeniu każdej instancji uruchamia się funkcja kons
     const event = new CustomEvent('add-to-cart', { //obiekt zawierający ustawienia tego eventu
       bubbles: true,
       detail: {
-        product: thisProduct,
+        product: thisProduct.prepareCartProduct() // występował tu problem z NaN
       },
     });
 
@@ -307,7 +310,7 @@ class Product { //! Przy tworzeniu każdej instancji uruchamia się funkcja kons
       price: thisProduct.priceSingle * thisProduct.amountWidget.value, // czyli "total price"
       params: thisProduct.prepareCartProductParams(),
     };
-    return(productSummary); //w ten sposób funkcja będzie zwracała cały obiekt podsumowania
+    return productSummary; //w ten sposób funkcja będzie zwracała cały obiekt podsumowania
   }
 
   prepareCartProductParams() {
