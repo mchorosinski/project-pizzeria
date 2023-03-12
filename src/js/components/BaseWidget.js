@@ -26,7 +26,7 @@ class BaseWidget {
     /* [DONE] Add validation */
 
     //! Sprawdzamy, czy wartość, która przychodzi do funkcji, jest inna niż ta, która jest już aktualnie w `thisWidget.correctValue` oraz ustawiamy zakres akceptowalnych wartości, tj. liczba sztuk: 1-10.
-    if(thisWidget.correctValue !== newValue && !isNaN(newValue) && thisWidget.isValid(newValue)) { // `!==` ozanacza różne wartości i typy danych; `!isNaN` nie jest nullem, ponieważ jeśli parseInt natrafi na tekst, którego nie da się skonwertować na liczbę (np. abc), to zwróci null
+    if(thisWidget.correctValue !== newValue && thisWidget.isValid(newValue)) { // `!==` ozanacza różne wartości i typy danych; `!isNaN` nie jest nullem, ponieważ jeśli parseInt natrafi na tekst, którego nie da się skonwertować na liczbę (np. abc), to zwróci null
       thisWidget.correctValue = newValue; // zapisuje we właściwości thisWidget.correctValue wartość przekazanego argumentu
       //! Wywołanie metody - zadbać o to, aby uruchamiała się dopiero wtedy, kiedy nowa wartość (czyli `input.value`), którą chcemy ustawić, faktycznie jest poprawna.
       //! Event `updated` uruchomi się przy zmianie wartości, ale tylko na taką, która wciąż będzie poprawna.
