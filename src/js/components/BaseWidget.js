@@ -6,8 +6,8 @@ class BaseWidget {
     thisWidget.dom.wrapper = wrapperElement;
 
     thisWidget.correctValue = initialValue;
-    console.log('thisWidget.dom', thisWidget.dom);
-    console.log('thisWidget.correctValue', thisWidget.correctValue);
+    //console.log('thisWidget.dom', thisWidget.dom);
+    //console.log('thisWidget.correctValue', thisWidget.correctValue);
   }
 
   get value() { // to jest getter
