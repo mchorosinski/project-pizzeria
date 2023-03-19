@@ -178,8 +178,38 @@ class Booking {
     thisBooking.dom.datePicker = element.querySelector(select.widgets.datePicker.wrapper); // '.date-picker'
     thisBooking.dom.hourPicker = element.querySelector(select.widgets.hourPicker.wrapper); // '.hour-picker'
     thisBooking.dom.tables = element.querySelectorAll(select.booking.tables);
+    thisBooking.dom.floor = element.querySelector(select.booking.floor);
     // console.log('thisBooking.dom.peopleAmount:', thisBooking.dom.peopleAmount);
     // console.log('thisBooking.dom.hoursAmount:', thisBooking.dom.hoursAmount);
+  }
+
+  initTables() {
+    const thisBooking = this;
+
+    thisBooking.dom.floor.addEventListener('click', function(event) {
+      event.preventDefault();
+      //console.log('event.target:', event.target);
+
+      if(event.target.classList.contains('table')) { // to jest "event delegation" - Technika ta polega na tym, że zamiast nasłuchiwać na pojedyncze elementy, nasłuchuje się na jeden kontener.
+        event.preventDefault();
+
+        if(!event.target.classList.contains(classNames.booking.tableBooked)) { // sprawdzamy czy stolik nie ma klasy 'booked'
+
+          for(let table of thisBooking.dom.tables) {
+            if (table.classList.contains(classNames.booking.tableSelected) &&
+            table !== event.target) {
+              table.classList.remove(classNames.booking.tableSelected);
+            }
+            if(event.target.classList.contains(classNames.booking.tableSelected)) {
+              event.target.classList.remove(classNames.booking.tableSelected);
+            } else {
+              event.target.classList.add(classNames.booking.tableSelected);
+            } thisBooking.selectedTable = table.getAttribute('data-table');
+            //console.log('thisBooking.selectedTable', thisBooking.selectedTable);
+          }
+        }
+      }
+    });
   }
 
   initWidgets() {
@@ -209,6 +239,10 @@ class Booking {
 
     thisBooking.dom.wrapper.addEventListener('updated', function() {
       thisBooking.updateDOM();
+    });
+
+    thisBooking.dom.floor.addEventListener('click', function (event) {
+      thisBooking.initTables(event);
     });
   }
 }
