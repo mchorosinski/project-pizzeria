@@ -79,7 +79,7 @@ class Booking {
     thisBooking.booked = {};
 
     for(let item of bookings) {
-      console.log('bookings:', bookings);
+      //console.log('bookings:', bookings);
       thisBooking.makeBooked(item.date, item.hour, item.duration, item.table);
     }
 
@@ -179,6 +179,12 @@ class Booking {
     thisBooking.dom.hourPicker = element.querySelector(select.widgets.hourPicker.wrapper); // '.hour-picker'
     thisBooking.dom.tables = element.querySelectorAll(select.booking.tables);
     thisBooking.dom.floor = element.querySelector(select.booking.floor);
+    thisBooking.dom.submit = element.querySelector(select.booking.submit);
+    thisBooking.dom.duration = element.querySelector(select.booking.duration);
+    thisBooking.dom.people = element.querySelector(select.booking.people);
+    thisBooking.dom.starters = element.querySelectorAll(select.booking.starters);
+    thisBooking.dom.phone = element.querySelector(select.booking.phone);
+    thisBooking.dom.address = element.querySelector(select.booking.address);
     // console.log('thisBooking.dom.peopleAmount:', thisBooking.dom.peopleAmount);
     // console.log('thisBooking.dom.hoursAmount:', thisBooking.dom.hoursAmount);
   }
@@ -212,6 +218,44 @@ class Booking {
     });
   }
 
+  sendBooking() {
+    const thisBooking = this;
+
+    const url = settings.db.url + '/' + settings.db.bookings;
+
+    const payload = {
+      date: thisBooking.datePicker.value,
+      hour: thisBooking.hourPicker.value,
+      table: parseInt(thisBooking.selectedTable),
+      duration: parseInt(thisBooking.dom.duration.value),
+      people: parseInt(thisBooking.dom.people.value),
+      starters: [],
+      phone: thisBooking.dom.phone.value,
+      address: thisBooking.dom.address.value,
+    };
+
+    for (let starter of thisBooking.dom.starters) {
+      if (starter.checked) {
+        payload.starters.push(starter.value);
+      }
+    }
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    };
+
+    fetch(url, options)
+      .then(function(response){
+        return response.json();
+      }).then(function(parsedResponse){
+        console.log('parsedResponse', parsedResponse);
+      });
+  }
+
   initWidgets() {
     const thisBooking = this;
 
@@ -243,6 +287,12 @@ class Booking {
 
     thisBooking.dom.floor.addEventListener('click', function (event) {
       thisBooking.initTables(event);
+    });
+
+    thisBooking.dom.submit.addEventListener('click', function(event){
+      event.preventDefault();
+      thisBooking.sendBooking();
+      console.log('clicked');
     });
   }
 }

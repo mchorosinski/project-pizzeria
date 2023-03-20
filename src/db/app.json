@@ -258,14 +258,5 @@
       }
     ],
     "bookings": [
-      {
-         "id": 1,
-         "date": "2023-03-02",
-         "hour": "16:00",
-         "table": 1,
-         "duration": 3,
-         "ppl": 4,
-         "starters": ["water"]
-      }
     ]
  }
