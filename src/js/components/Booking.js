@@ -177,44 +177,62 @@ class Booking {
     thisBooking.dom.hoursAmount = element.querySelector(select.booking.hoursAmount);
     thisBooking.dom.datePicker = element.querySelector(select.widgets.datePicker.wrapper); // '.date-picker'
     thisBooking.dom.hourPicker = element.querySelector(select.widgets.hourPicker.wrapper); // '.hour-picker'
-    thisBooking.dom.tables = element.querySelectorAll(select.booking.tables);
-    thisBooking.dom.floor = element.querySelector(select.booking.floor);
+    thisBooking.dom.tables = element.querySelectorAll(select.booking.table);
+    thisBooking.dom.floor = element.querySelector(select.booking.floor); // div ze wszystkimi stolikami
     thisBooking.dom.submit = element.querySelector(select.booking.submit);
     thisBooking.dom.duration = element.querySelector(select.booking.duration);
     thisBooking.dom.people = element.querySelector(select.booking.people);
     thisBooking.dom.starters = element.querySelectorAll(select.booking.starters);
     thisBooking.dom.phone = element.querySelector(select.booking.phone);
     thisBooking.dom.address = element.querySelector(select.booking.address);
-    // console.log('thisBooking.dom.peopleAmount:', thisBooking.dom.peopleAmount);
-    // console.log('thisBooking.dom.hoursAmount:', thisBooking.dom.hoursAmount);
   }
 
-  initTables() {
+  initTables() { // TODO fix starters add & updateDOM
     const thisBooking = this;
+
+    const bookedTableArr = [];
 
     thisBooking.dom.floor.addEventListener('click', function(event) {
       event.preventDefault();
       //console.log('event.target:', event.target);
 
-      if(event.target.classList.contains('table')) { // to jest "event delegation" - Technika ta polega na tym, że zamiast nasłuchiwać na pojedyncze elementy, nasłuchuje się na jeden kontener.
+      const targetTable = event.target; // to jest "event delegation" - Technika ta polega na tym, że zamiast nasłuchiwać na pojedyncze elementy, nasłuchuje się na jeden kontener.
+
+      if(targetTable.classList.contains('table')) { // z klasy
         event.preventDefault();
+        console.log('targetTable:', targetTable);
 
-        if(!event.target.classList.contains(classNames.booking.tableBooked)) { // sprawdzamy czy stolik nie ma klasy 'booked'
+        const tableId = targetTable.getAttribute('data-table'); // z atrybutu
 
-          for(let table of thisBooking.dom.tables) {
+        if(!targetTable.classList.contains(classNames.booking.tableBooked)) { // sprawdzamy czy stolik nie ma klasy 'booked'
+
+          let tables = thisBooking.dom.tables;
+
+          for(let table of tables) {
+
             if (table.classList.contains(classNames.booking.tableSelected) &&
             table !== event.target) {
               table.classList.remove(classNames.booking.tableSelected);
             }
-            if(event.target.classList.contains(classNames.booking.tableSelected)) {
-              event.target.classList.remove(classNames.booking.tableSelected);
+            if(targetTable.classList.contains(classNames.booking.tableSelected)) {
+              targetTable.classList.remove(classNames.booking.tableSelected);
+
             } else {
-              event.target.classList.add(classNames.booking.tableSelected);
-            } thisBooking.selectedTable = table.getAttribute('data-table');
-            //console.log('thisBooking.selectedTable', thisBooking.selectedTable);
+              targetTable.classList.add(classNames.booking.tableSelected);
+            }
+            thisBooking.selectedTable = tableId;
           }
+          console.log('thisBooking.selectedTable:', thisBooking.selectedTable);
         }
       }
+      bookedTableArr.push(thisBooking.selectedTable);
+      //console.log('bookedTableArr:', bookedTableArr);
+
+      // let tempBookedArrLastItem = tempBookedArr[tempBookedArr.length - 1];
+      // console.log('tempBookedArrLastItem :', tempBookedArrLastItem );
+
+      // let tempBookedArrLastItem = tempBookedArr.slice(-1)[0];
+      // console.log('tempBookedArrLastItem :', tempBookedArrLastItem );
     });
   }
 
@@ -226,7 +244,7 @@ class Booking {
     const payload = {
       date: thisBooking.datePicker.value,
       hour: thisBooking.hourPicker.value,
-      table: parseInt(thisBooking.selectedTable),
+      table: Number(thisBooking.selectedTable),
       duration: parseInt(thisBooking.dom.duration.value),
       people: parseInt(thisBooking.dom.people.value),
       starters: [],
@@ -239,6 +257,7 @@ class Booking {
         payload.starters.push(starter.value);
       }
     }
+    console.log('payload.starters', payload.starters);
 
     const options = {
       method: 'POST',
@@ -253,7 +272,10 @@ class Booking {
         return response.json();
       }).then(function(parsedResponse){
         console.log('parsedResponse', parsedResponse);
+        thisBooking.updateDOM();
       });
+
+    console.log('thisBooking.booked', thisBooking.booked);
   }
 
   initWidgets() {
@@ -281,8 +303,21 @@ class Booking {
     // thisBooking.dom.hourPicker.addEventListener('updated', function() {
     // });
 
-    thisBooking.dom.wrapper.addEventListener('updated', function() {
+    thisBooking.dom.wrapper.addEventListener('updated', function(event) {
       thisBooking.updateDOM();
+
+      if (
+        event.target == thisBooking.dom.hourPicker ||
+        event.target == thisBooking.dom.datePicker ||
+        event.target == thisBooking.dom.peopleAmount ||
+        event.target == thisBooking.dom.hoursAmount
+      ){
+        thisBooking.selectedTable = {};
+        console.log('thisBooking.selectedTable', thisBooking.selectedTable);
+        for (let table of thisBooking.dom.tables){
+          table.classList.remove('selected');
+        }
+      }
     });
 
     thisBooking.dom.floor.addEventListener('click', function (event) {
@@ -292,7 +327,7 @@ class Booking {
     thisBooking.dom.submit.addEventListener('click', function(event){
       event.preventDefault();
       thisBooking.sendBooking();
-      console.log('clicked');
+      console.log('clicked submit');
     });
   }
 }
